@@ -4,13 +4,14 @@ from django.conf import settings
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.translation import ugettext_lazy as _
 
 
-class AccessLevel(models.Model):
+class Level(models.Model):
     """
-    A model for content access.
+    Represents a discrete access level that can be granted to a user
     """
     name = models.CharField(_('name'), max_length=50, unique=True)
     is_protected = models.BooleanField()
@@ -24,30 +25,43 @@ class AccessLevel(models.Model):
         return self.name
 
 
-class AccessNodeManager(models.Manager):
-    def for_content(self, content_object):
-        content_type = ContentType.objects.get_for_model(
-                                content_object.__class__)
-        return self.filter(
-                        content_type=content_type,
-                        object_id=content_object.id,
-                    )
+class AccessObject(models.Model):
+    """
+    An access model represents a set of access assignments. A content object
+    that needs to be access restricted should have relate to exactly one
+    AccessModel
+    """
+    @property
+    def current_assignments(self):
+        now = datetime.datetime.now()
+        return self.assignments.filter(end_date__gte=now,
+                                       start_date__lte=now)
+
+    def add(self, *args, **kwargs):
+        return self.assignments.add(*args, **kwargs)
+
+    def create(self, *args, **kwargs):
+        return self.assignments.create(*args, **kwargs)
+
+    def clear(self):
+        return self.assignments.all().delete()
 
 
-class AccessNode(models.Model):
-    objects = AccessNodeManager()
-
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.PositiveIntegerField()
-    content = generic.GenericForeignKey('content_type', 'object_id')
-    access_level = models.ForeignKey(AccessLevel, verbose_name=_("access level"))
-    access_date = models.DateTimeField(_('access date'))
-
-    class Meta:
-        unique_together = ('object_id', 'content_type', 'access_level')
+class Assignment(models.Model):
+    """
+    An access assignment grants access to an AccessModel for a set period of
+    time
+    """
+    access_object = models.ForeignKey(AccessObject, related_name='assignments')
+    level = models.ForeignKey(Level,
+                              verbose_name=_("access level"),
+                              related_name='assignments')
+    start_date = models.DateTimeField(_('start date'))
+    end_date = models.DateTimeField(_('end date'),
+            default=datetime.datetime.max)
 
     def __unicode__(self):
-        return u"%s - %s" % (self.access_level, self.content)
+        return u"%s - %s" % (self.level, self.access_object)
 
 
 class AccessMembershipQuerySet(QuerySet):
@@ -78,7 +92,7 @@ class AccessMembership(models.Model):
 
     user = models.ForeignKey('auth.User',
                              related_name='access_memberships')
-    access_level = models.ForeignKey(AccessLevel,
+    access_level = models.ForeignKey(Level,
                                     related_name='access_memberships')
     start_date = models.DateField()
     end_date = models.DateField()

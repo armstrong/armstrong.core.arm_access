@@ -12,45 +12,55 @@ from armstrong.core.arm_access.arm_access_support.models import Content
 from armstrong.core.arm_access.models import *
 from armstrong.core.arm_access.backends.subscription import SubscriptionPaywall
 
+
 @before.all
 def setup_everything():
-    world.everyone = AccessLevel.objects.create(name="everyone",
+    world.everyone = Level.objects.create(name="everyone",
                                                 is_protected=False)
-    world.premium = AccessLevel.objects.create(name="premium",
+    world.premium = Level.objects.create(name="premium",
                                                is_protected=True)
     world.user = User.objects.create(username="jjohnson", is_active=True)
     world.user.set_password('1234')
+
 
 @before.each_scenario
 def setup_scenario(scenario):
     pass
 
+
 @after.each_scenario
 def teardown_scenario(scenario):
     Content.objects.all().delete()
     AccessMembership.objects.all().delete()
-    AccessNode.objects.all().delete()
+    Assignment.objects.all().delete()
+
 
 @step(u'A piece of content exists')
 def a_piece_of_content_exists(step):
     world.content = Content.objects.create(name="The content")
+    world.content.access = []
+
 
 @step(u'it has no access defined')
 def it_has_no_access_defined(step):
-    pass
+    world.content.access = None
+
 
 @step(u'a user has no access levels defined')
 def a_user_has_no_access_levels_defined(step):
     pass
 
+
 @step(u'the default has_access backend is configured')
 def the_default_has_access_backend_is_configured(step):
     world.backend = SubscriptionPaywall()
+
 
 @step(u'the access check is performed')
 def the_access_check_is_performed(step):
     request = fudge.Fake().has_attr(user=world.user)
     world.result = world.backend.has_permission(request, world.content)
+
 
 @step(u'access should be (.*)')
 def access_should_be_denied(step, allowed_or_denied):
@@ -59,16 +69,16 @@ def access_should_be_denied(step, allowed_or_denied):
     else:
         assert world.result == False
 
+
 @step(u'it has a (.*) access node with a date in the (.*)')
 def it_has_an_access_node_with_a_date(step, node_type, date):
-    access_level = AccessLevel.objects.get(name=node_type)
+    access_level = Level.objects.get(name=node_type)
     if date == 'future':
         access_date = dt.datetime.now() + dt.timedelta(days=5)
     else:
         access_date = dt.datetime.now() + dt.timedelta(days=-5)
-    AccessNode.objects.create(access_level=access_level,
-                              access_date=access_date,
-                              content=world.content)
+    world.content.access.create(level=access_level, start_date=access_date)
+
 
 @step(u'a user has the premium access level')
 def a_user_has_the_premium_access_level(step):
@@ -79,5 +89,3 @@ def a_user_has_the_premium_access_level(step):
     kwargs['access_level'] = world.premium
     kwargs['user'] = world.user
     AccessMembership.objects.create(**kwargs)
-
-

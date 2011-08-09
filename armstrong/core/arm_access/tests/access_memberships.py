@@ -3,8 +3,9 @@ import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from ..models import AccessLevel, AccessMembership
+from ..models import Level, AccessMembership
 from ._utils import *
+
 
 class TestAccessMemberships(TestCase):
     def setUp(self):
@@ -12,8 +13,8 @@ class TestAccessMemberships(TestCase):
                                               "bob@example.com", "secret")
         self.user2 = User.objects.create_user("jim",
                                               "jim@example.com", "secret")
-        self.al1 = AccessLevel.objects.create(name='AccessLevel 1')
-        self.al2 = AccessLevel.objects.create(name='AccessLevel 2')
+        self.al1 = Level.objects.create(name='Level 1')
+        self.al2 = Level.objects.create(name='Level 2')
 
     def test_model(self):
         self.assertEqual(AccessMembership.objects.count(), 0)
@@ -83,4 +84,3 @@ class TestAccessMemberships(TestCase):
         s2.save()
         self.assertEqual(user1_access_levels.count(), 1)
         self.assertEqual(user2_access_levels.count(), 1)
-

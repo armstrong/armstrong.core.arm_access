@@ -8,7 +8,8 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
-from ..models import AccessNode
+from ..models import Assignment
+
 
 class ImproperResponse(Exception):
     "An unexpected response type was returned from the view"
@@ -66,17 +67,14 @@ class SubscriptionPaywall(object):
                 not getattr(settings, 'DEFAULT_PUBLIC_ACCESS', False))
 
     def required_permissions(self, content_object):
-        access_nodes = AccessNode.objects.for_content(content_object)
-        now = datetime.datetime.now()
+        assignments = content_object.access.current_assignments
         permissions = []
-        for node in access_nodes:
-            is_accessible = node.access_date <= now
-            is_protected = node.access_level.is_protected
-            if is_accessible:
-                if not is_protected:
-                    return None
-                else:
-                    permissions.append(node.access_level)
+        for assignment in assignments:
+            if assignment.level.is_protected:
+                permissions.append(assignment.level)
+            else:
+                # there is an unprotected level with access
+                return None
         return permissions
 
     def has_permission(self, request, content_object):
