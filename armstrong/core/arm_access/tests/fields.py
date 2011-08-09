@@ -22,6 +22,12 @@ class AccessFieldTestCase(ArmAccessTestCase):
         self.assertEquals(0, AccessObject.objects.count())
         self.assertEquals(None, obj.access)
 
+    def testSettingAccessToNoneExplicitly(self):
+        obj = Content.objects.create()
+        obj.access = None
+        self.assertEquals(0, AccessObject.objects.count())
+        self.assertEquals(None, obj.access)
+
     def testSettingAccessToEmptyList(self):
         obj = Content.objects.create()
         obj.access = []

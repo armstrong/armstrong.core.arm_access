@@ -1,6 +1,6 @@
 import datetime
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.template.response import HttpResponse, TemplateResponse
@@ -17,24 +17,30 @@ class DummyRequest(object):
     def __init__(self, user):
         self.user = user
 
+class DummyRedirect(object):
+    status_code = 301
+
+def dummy_content_view(content_object):
+    def inner(request):
+        return TemplateResponse(request, 'content_detail.html', {
+            'content_object': content_object,
+        })
+    return inner
 
 class SubscriptionTestCase(ArmAccessTestCase):
     def setUp(self):
         super(SubscriptionTestCase, self).setUp()
         self.user = User.objects.create_user("bob",
                                              "bob@example.com", "secret")
-        self.level1 = Level.objects.create(name='Level 1', is_protected=True)
-        self.level2 = Level.objects.create(name='Level 2', is_protected=False)
+        self.protected = Level.objects.create(name='Level 1', is_protected=True)
+        self.public = Level.objects.create(name='Level 2', is_protected=False)
+        self.now = datetime.datetime.now()
         self.dummy_content = Content.objects.create()
         self.dummy_content.access = []
         self.dummy_content.access.create(
-            level=self.level1, start_date=datetime.datetime.now())
+            level=self.protected, start_date=datetime.datetime.now())
 
-        def dummy_content_view(request, content_object=self.dummy_content):
-            return TemplateResponse(request, 'content_detail.html', {
-                'content_object': content_object,
-            })
-        self.dummy_view = dummy_content_view
+        self.dummy_view = dummy_content_view(self.dummy_content)
 
     def test_subscription_paywall_denies_content_by_default(self):
         paywall = SubscriptionPaywall(template_object_name='content_object')
@@ -59,6 +65,13 @@ class SubscriptionTestCase(ArmAccessTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], '/login/')
 
+    def test_subscription_paywall_allows_redirects_through(self):
+        paywall = SubscriptionPaywall(template_object_name='content_object',
+                                      redirect_uri='/login/')
+        protected_view = paywall.protect(lambda req: DummyRedirect())
+        response = protected_view(DummyRequest(self.user))
+        self.assertEqual(response.status_code, 301)
+
     def test_access_granted_by_current_subscription(self):
         paywall = SubscriptionPaywall(template_object_name='content_object')
         protected_view = paywall.protect(self.dummy_view)
@@ -66,7 +79,7 @@ class SubscriptionTestCase(ArmAccessTestCase):
         self.assertRaises(PermissionDenied, protected_view, request)
         today = datetime.date.today()
         year_end = today + datetime.timedelta(days=365)
-        AccessMembership.objects.create(user=self.user, level=self.level1,
+        AccessMembership.objects.create(user=self.user, level=self.protected,
                                     start_date=today, end_date=year_end)
         response = protected_view(request)
         AccessMembership.objects.filter(user=self.user).update(active=False)
@@ -86,29 +99,18 @@ class SubscriptionTestCase(ArmAccessTestCase):
         c = Content.objects.create()
         paywall = SubscriptionPaywall(template_object_name='content_object')
 
-        def dummy_content_view(request, content_object=c):
-            return TemplateResponse(request, 'content_detail.html', {
-                'content_object': content_object,
-            })
-        paywall.protect(dummy_content_view)
         #no publication = not protected
         self.assertFalse(paywall.is_content_protected(c))
-        c.access = Assignment(level=self.level1,
+        c.access = Assignment(level=self.protected,
                               start_date=datetime.datetime.now())
         self.assertTrue(paywall.is_content_protected(c))
 
     def test_content_only_in_unprotected_pub_is_not_protected(self):
         c = Content.objects.create()
         paywall = SubscriptionPaywall(template_object_name='content_object')
-
-        def dummy_content_view(request, content_object=c):
-            return TemplateResponse(request, 'content_detail.html', {
-                'content_object': content_object,
-            })
-        paywall.protect(dummy_content_view)
-        c.access = [Assignment(level=self.level1,
+        c.access = [Assignment(level=self.protected,
                                start_date=datetime.datetime.now()),
-                    Assignment(level=self.level2,
+                    Assignment(level=self.public,
                                start_date=datetime.datetime.now()),
                    ]
         self.assertFalse(paywall.is_content_protected(c))
@@ -117,17 +119,10 @@ class SubscriptionTestCase(ArmAccessTestCase):
         c = Content.objects.create()
         paywall = SubscriptionPaywall(template_object_name='content_object')
 
-        def dummy_content_view(request, content_object=c):
-            return TemplateResponse(request, 'content_detail.html', {
-                'content_object': content_object,
-            })
-        paywall.protect(dummy_content_view)
         c.access = []
-        c.access.create(level=self.level1, start_date=datetime.datetime.now())
-        #level1 = protected
+        c.access.create(level=self.protected, start_date=datetime.datetime.now())
         self.assertTrue(paywall.is_content_protected(c))
-        c.access.create(level=self.level2, start_date=datetime.datetime.now())
-        #adding level2 unprotects content
+        c.access.create(level=self.public, start_date=datetime.datetime.now())
         self.assertFalse(paywall.is_content_protected(c))
         #sanity check that we added two publications in this test
         self.assertEqual(c.access.assignments.count(), 2)
@@ -136,17 +131,50 @@ class SubscriptionTestCase(ArmAccessTestCase):
         c = Content.objects.create()
         paywall = SubscriptionPaywall(template_object_name='content_object')
 
-        def dummy_content_view(request, content_object=c):
-            return TemplateResponse(request, 'content_detail.html', {
-                'content_object': content_object,
-            })
-        paywall.protect(dummy_content_view)
-        c.access = Assignment(level=self.level1,
+        c.access = Assignment(level=self.protected,
                               start_date=datetime.datetime.now())
-        #level1 = protected
         self.assertTrue(paywall.is_content_protected(c))
-        c.access.add(Assignment(level=self.level2,
+        c.access.add(Assignment(level=self.public,
                                 start_date=datetime.datetime.now() +
                                            datetime.timedelta(days=999)))
-        #since it's not published in level2, it's still protected
+        #since it's not published in public, it's still protected
         self.assertTrue(paywall.is_content_protected(c))
+
+    def test_anonymous_user_has_access_to_unprotected_content(self):
+        c = Content.objects.create()
+        paywall = SubscriptionPaywall(template_object_name='content_object')
+        self.assertTrue(paywall.has_permission(DummyRequest(AnonymousUser()),
+                                               c))
+
+    def test_anonymous_user_has_access_to_content_published_in_unprotected(self):
+        c = Content.objects.create()
+        c.access = Assignment(level=self.public, start_date=self.now)
+        paywall = SubscriptionPaywall(template_object_name='content_object')
+        self.assertTrue(paywall.has_permission(DummyRequest(AnonymousUser()),
+                                               c))
+
+    def test_anonymous_user_has_no_access_to_protected_content(self):
+        c = Content.objects.create()
+        c.access = Assignment(level=self.protected, start_date=self.now)
+        paywall = SubscriptionPaywall(template_object_name='content_object')
+        self.assertFalse(paywall.has_permission(DummyRequest(AnonymousUser()),
+                                                c))
+
+    def test_staff_user_has_access_to_protected_content(self):
+        c = Content.objects.create()
+        c.access = Assignment(level=self.protected, start_date=self.now)
+        paywall = SubscriptionPaywall(template_object_name='content_object')
+        self.user.is_staff = True
+        self.assertTrue(paywall.has_permission(DummyRequest(self.user), c))
+
+    def test_user_with_unrelated_access_cant_access_protected_content(self):
+        c = Content.objects.create()
+        c.access = Assignment(level=self.protected, start_date=self.now)
+        new_level = Level.objects.create(name="Magic Pony")
+        today = datetime.date.today()
+        year_end = today + datetime.timedelta(days=365)
+        AccessMembership.objects.create(user=self.user, level=new_level,
+                                    start_date=today, end_date=year_end)
+        paywall = SubscriptionPaywall(template_object_name='content_object')
+        self.assertFalse(paywall.has_permission(DummyRequest(self.user), c))
+
