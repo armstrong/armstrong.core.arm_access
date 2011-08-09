@@ -61,12 +61,9 @@ class SubscriptionPaywall(object):
 
         return wrapped
 
-    def _is_permission_required(self, access_levels):
-        return access_levels is not None and (
-                len(access_levels) > 1 or
-                not getattr(settings, 'DEFAULT_PUBLIC_ACCESS', False))
-
     def required_permissions(self, content_object):
+        if content_object.access is None:
+            return None
         assignments = content_object.access.current_assignments
         permissions = []
         for assignment in assignments:
@@ -77,11 +74,14 @@ class SubscriptionPaywall(object):
                 return None
         return permissions
 
+    def is_content_protected(self, content_object):
+        return self.required_permissions(content_object) is not None
+
     def has_permission(self, request, content_object):
         required = self.required_permissions(content_object)
 
         # Only check content with subscription required
-        if not self._is_permission_required(required):
+        if required is None:
             return True
 
         # Anonymous users can't view subscription content
@@ -92,12 +92,12 @@ class SubscriptionPaywall(object):
         if request.user.is_staff:
             return True
 
-        # Also users with an active subscription to this access_level
+        # Also users with an active subscription to this level
         try:
             today = datetime.date.today()
             memberships = request.user.access_memberships.current()
             for membership in memberships:
-                if membership.access_level in required:
+                if membership.level in required:
                     return True
             return False
         except ObjectDoesNotExist:

@@ -15,18 +15,19 @@ class AccessField(models.OneToOneField):
 
 class AccessDescriptor(ReverseSingleRelatedObjectDescriptor):
     def __set__(self, instance, value):
-        #accept None, a list of Assignments or a single assignment
-        if value is None and instance.access_id is None:
-            return
+        # we accept None, a list of Assignments or a single assignment
         obj = self.__get__(instance)
-        if obj is None:
+        if obj is None and value is not None:
             obj = AccessObject.objects.create()
             instance.access_id = obj.id
 
         if value is None:
-            instance.access_id = None
-            instance.save()
-            obj.delete()
+            if obj is not None:
+                instance.access_id = None
+                instance.save()
+                obj.delete()
+            # use our super class for cache invalidation
+            super(AccessDescriptor, self).__set__(instance, None)
         elif hasattr(value, '__iter__'):
             obj.clear()
             obj.add(*value)

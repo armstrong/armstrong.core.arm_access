@@ -1,13 +1,12 @@
 import datetime
 
 from django.contrib.auth.models import User
-from django.test import TestCase
 
 from ..models import Level, AccessMembership
 from ._utils import *
 
 
-class TestAccessMemberships(TestCase):
+class TestAccessMemberships(ArmAccessTestCase):
     def setUp(self):
         self.user1 = User.objects.create_user("bob",
                                               "bob@example.com", "secret")
@@ -20,7 +19,7 @@ class TestAccessMemberships(TestCase):
         self.assertEqual(AccessMembership.objects.count(), 0)
         today = datetime.date.today()
         year_end = today + datetime.timedelta(days=365)
-        s = AccessMembership(user=self.user1, access_level=self.al1,
+        s = AccessMembership(user=self.user1, level=self.al1,
                          start_date=today, end_date=year_end)
         s.save()
         self.assertEqual(s.active, True)
@@ -33,7 +32,7 @@ class TestAccessMemberships(TestCase):
         self.assertEqual(AccessMembership.objects.current().count(), 0)
         today = datetime.date.today()
         year_end = today + datetime.timedelta(days=365)
-        s = AccessMembership(user=self.user1, access_level=self.al1,
+        s = AccessMembership(user=self.user1, level=self.al1,
                          start_date=today, end_date=year_end)
         s.save()
         self.assertEqual(AccessMembership.objects.count(), 1)
@@ -59,7 +58,7 @@ class TestAccessMemberships(TestCase):
         self.assertEqual(self.user1.access_memberships.count(), 0)
         today = datetime.date.today()
         year_end = today + datetime.timedelta(days=365)
-        s = AccessMembership(user=self.user1, access_level=self.al1,
+        s = AccessMembership(user=self.user1, level=self.al1,
                          start_date=today, end_date=year_end)
         s.save()
         self.assertEqual(self.user1.access_memberships.count(), 1)
@@ -74,12 +73,12 @@ class TestAccessMemberships(TestCase):
         user2_access_levels = self.user2.access_memberships.current()
         self.assertEqual(user1_access_levels.count(), 0)
         self.assertEqual(user2_access_levels.count(), 0)
-        s1 = AccessMembership(user=self.user1, access_level=self.al1,
+        s1 = AccessMembership(user=self.user1, level=self.al1,
                           start_date=today, end_date=year_end)
         s1.save()
         self.assertEqual(user1_access_levels.count(), 1)
         self.assertEqual(user2_access_levels.count(), 0)
-        s2 = AccessMembership(user=self.user2, access_level=self.al1,
+        s2 = AccessMembership(user=self.user2, level=self.al1,
                           start_date=today, end_date=year_end)
         s2.save()
         self.assertEqual(user1_access_levels.count(), 1)

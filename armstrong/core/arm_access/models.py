@@ -92,8 +92,7 @@ class AccessMembership(models.Model):
 
     user = models.ForeignKey('auth.User',
                              related_name='access_memberships')
-    access_level = models.ForeignKey(Level,
-                                    related_name='access_memberships')
+    level = models.ForeignKey(Level, related_name='access_memberships')
     start_date = models.DateField()
     end_date = models.DateField()
     active = models.BooleanField(default=True)
