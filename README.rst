@@ -9,7 +9,95 @@ Code for creating access levels for armstrong.
 Usage
 -----
 
-**TODO**
+Make sure that ``armstrong.core.arm_content`` is installed in your
+environment and has been added to your ``INSTALLED_APPS``. You will also need
+to make sure the models have been installed in your database via ``armstrong
+syncdb``. See the 'Restricting Content' and 'User Memberships' sections for more
+information.
+
+
+Restricting Content
+-------------------
+
+Content objects can have access restricted to certain levels by having them
+inherit from the ``armstrong.core.arm_access.mixins.AccessMixin`` class. This
+will allow for the association of
+``armstrong.core.arm_access.models.Assignment``'s which specify levels that
+grant access to that object for a specific time frame.
+
+For the basic paywall scenario where some stories are always premium and others
+are always public, create two ``armstrong.core.arm_access.models.Level``'s. One
+will be your premium level which will have ``is_protected`` set to ``True``
+while the other will be your public level which will have ``is_protected`` set
+to ``False``. When publishing an article, assign one of the two levels to the
+content.
+
+For content which is premium for a period and then becomes public, create two
+levels as before. Assign new content to the premium level with an
+immediate ``start_date``, and also assign it to the public
+level with a ``start_date`` when you would like the content to become freely
+available.
+
+To restrict access to your archives to only premium subscribers you would add
+content to the public level with an immediate ``start_date`` and an
+``end_date`` of when you want to no longer offer free access. You will then
+need to add the content to the premium level with an immediate ``start_date``
+and no ``end_date`` (which will default to ``datetime.datetime.max``).
+
+User Memberships
+----------------
+
+Users are granted access to Levels via
+``armstrong.core.arm_access.models.AccessMembership``'s. Each membership has a
+``start_date`` and ``end_date`` which defines the time frame for which the
+membership is valid. Each memrbership also has an ``active`` boolean field
+which can be set to False to invalidate the membership. A user's active
+memberships can be queried with ``user.access_memberships.current()``
+
+Backends
+--------
+
+The actual process of preventing a user from accessing a piece of content is
+handled via the backends in the ``armstrong.core.arm_access.backends`` package.
+Currently the only provided backend is
+``armstrong.core.arm_access.backends.subscription.SubscriptionPaywall`` which
+checks for current memberships. The SubscriptionPaywall only works on a view
+which returns a TemplateResponse.
+
+To use the SubscriptionPaywall in the demo app, you would use code like the
+following::
+
+    ...
+
+    paywall = SubscriptionPaywall(template_object_name='object')
+    protected_detail = paywall.protect(object_detail)
+
+    ...
+
+    url(r'^article/(?P<slug>[-\w]+)/', protected_detail, {
+                        'queryset':Article.published.all().select_subclasses(),
+                        'template_name':'article.html',
+                        'slug_field':'slug',
+                    },
+            name='article_detail'),
+
+An AccessDenied would be raised any time a user visited an article that was
+protected with an access Level that they didn't have a membership for. The
+SubscriptionPaywall can instead redirect to a uri passed in via the
+``redirect_uri`` keyword argument. You can also pass in a
+``paywall_template_name`` which will cause the provided template to be
+rendered. This is useful for rendering a teaser for your content and a call to
+action for an upsell.
+
+If you wanted to only render ads for users without a premium access level, you
+could use the SubscriptionPaywall with a default template that doesn't render
+ads and a paywall_template_name that does.
+
+To only allow an anonymous user a certain number of full article views and then
+display the paywall, you would need to build a custom paywall implementation,
+but the SubscriptionPaywall should provide a decent template. If you do
+implement it, it would be an excellent candidate for inclusion in this package.
+
 
 Installation
 ------------
