@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor
 from .models import AccessObject
+from .widgets import AccessWidget
+from .form_fields import AccessFormField
 
 
 class AccessField(models.OneToOneField):
@@ -11,6 +13,9 @@ class AccessField(models.OneToOneField):
     def contribute_to_class(self, cls, name):
         super(AccessField, self).contribute_to_class(cls, name)
         setattr(cls, self.name, AccessDescriptor(self))
+
+    def formfield(self, **kwargs):
+        return AccessFormField(**kwargs)
 
 
 class AccessDescriptor(ReverseSingleRelatedObjectDescriptor):
@@ -28,9 +33,10 @@ class AccessDescriptor(ReverseSingleRelatedObjectDescriptor):
                 obj.delete()
             # use our super class for cache invalidation
             super(AccessDescriptor, self).__set__(instance, None)
-        elif hasattr(value, '__iter__'):
-            obj.clear()
-            obj.add(*value)
         else:
             obj.clear()
-            obj.add(value)
+            if hasattr(value, '__iter__'):
+                obj.add(*value)
+            else:
+                obj.add(value)
+            super(AccessDescriptor, self).__set__(instance, obj)

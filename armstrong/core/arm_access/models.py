@@ -46,6 +46,9 @@ class AccessObject(models.Model):
     def clear(self):
         return self.assignments.all().delete()
 
+    def __unicode__(self):
+        return u'AccessObject - %i' % self.id
+
 
 class Assignment(models.Model):
     """
