@@ -15,6 +15,7 @@ AssignmentFormSet = modelformset_factory(Assignment, form=AssignmentModelForm)
 
 class AccessFormFieldTestCase(ArmAccessTestCase):
     def setUp(self):
+        super(AccessFormFieldTestCase, self).setUp()
         self.field = AccessFormField()
 
     def testCleanExistingAccessObject(self):
