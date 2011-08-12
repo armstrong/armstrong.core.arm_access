@@ -18,7 +18,7 @@ class InlineAssignmentForm(ModelForm):
         super(InlineAssignmentForm, self).__init__(*args, **kwargs)
         # necessary because SplitDateTimeWidget doesn't follow the spec and
         # call callables, instead it tries to unpack the value
-        self['start_date'].initial = datetime.now()
+        self.initial['start_date'] = datetime.now()
 
     class Meta:
         exclude = ('access_object', 'id')
@@ -56,9 +56,6 @@ class AccessWidget(Widget):
         return loader.render_to_string(self.template_name, context)
 
     def get_context(self, name, value, attrs=None):
-        final_attrs = self.build_attrs(attrs)
-        if 'name' in final_attrs:
-            final_attrs.pop('name')
         prefix = name + '-assignments'
         if value is None:
             # if object.access is None
@@ -74,7 +71,6 @@ class AccessWidget(Widget):
             assignments = value
 
         return Context({
-            'attrs': final_attrs,
             'hidden': self.is_hidden,
             'name': name,
             'required': self.is_required,

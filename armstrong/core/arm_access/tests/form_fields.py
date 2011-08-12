@@ -31,6 +31,9 @@ class AccessFormFieldTestCase(ArmAccessTestCase):
         obj = AccessObject.objects.get(id=obj_id)
         self.assertEqual(0, obj.assignments.count())
 
+    def testCleanInvalidValue(self):
+        with self.assertRaises(ValidationError):
+            obj = self.field.clean('invalid')
 
     def testCleanInvalidFormSet(self):
         formset = AssignmentFormSet({
@@ -59,8 +62,6 @@ class AccessFormFieldTestCase(ArmAccessTestCase):
                 'test-1-start_date': datetime.datetime.now(),
                 'test-1-end_date': datetime.datetime.now(),
             }, prefix='test')
-        if not formset.is_valid():
-            print formset.errors
         self.assertTrue(formset.is_valid())
         obj_id = self.field.clean(formset)
         obj = AccessObject.objects.get(id=obj_id)
