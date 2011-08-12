@@ -13,6 +13,8 @@ settings = {
         'armstrong.core.arm_access.arm_access_support',
         'lettuce.django',
     ),
+    'STATIC_URL':'/',
 }
+
 
 tested_apps = ("arm_access", )

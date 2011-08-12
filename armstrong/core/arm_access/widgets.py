@@ -1,7 +1,7 @@
 from django.forms import Widget, Form, SplitDateTimeField
 from django.forms.models import modelformset_factory, ModelForm
 from django.template import loader, Context
-from armstrong.hatband import widgets
+from ...hatband.widgets import AdminSplitDateTime
 from .models import Assignment
 from datetime import datetime
 from functools import partial
@@ -10,8 +10,8 @@ import re
 
 
 class InlineAssignmentForm(ModelForm):
-    start_date = SplitDateTimeField(widget=widgets.AdminSplitDateTime)
-    end_date = SplitDateTimeField(widget=widgets.AdminSplitDateTime,
+    start_date = SplitDateTimeField(widget=AdminSplitDateTime)
+    end_date = SplitDateTimeField(widget=AdminSplitDateTime,
                                   required=False)
 
     def __init__(self, *args, **kwargs):
@@ -48,7 +48,6 @@ AssignmentFormSet = modelformset_factory(Assignment,
 
 class AccessWidget(Widget):
     template_name = 'arm_access/access_object_widget.html'
-    label = 'Access'
 
     # pulled from https://github.com/brutasse/django/blob/15667-template-widgets/django/forms/widgets.py
     # hoping that it becomes the new django widget API
@@ -62,35 +61,37 @@ class AccessWidget(Widget):
             final_attrs.pop('name')
         prefix = name + '-assignments'
         if value is None:
+            # if object.access is None
             assignments = EmptyAssignmentFormSet(prefix=prefix,
                     queryset=Assignment.objects.none())
         elif type(value) == int:
+            # initial code path, we get the ID of the access object
             assignments = AssignmentFormSet(prefix=prefix,
-                queryset=Assignment.objects.filter(access_object=value))
-        elif hasattr(value, 'assignments'):
-            assignments = AssignmentFormSet(prefix=prefix,
-                    queryset=value.assignments.all())
+                    queryset=Assignment.objects.filter(access_object=value))
         else:
+            # if form submit failed with validation errors, we are passed an
+            # AssignmentFormSet, so we just want to pass it through
             assignments = value
 
-        context = {
+        return Context({
             'attrs': final_attrs,
             'hidden': self.is_hidden,
             'name': name,
             'required': self.is_required,
             'is_public': value is None,
             'assignments':assignments
-        }
-
-        return Context(context)
-
-    def _set_choices(self, value):
-        return
-    def _get_choices(self):
-        return []
-    choices = property(_get_choices, _set_choices)
+        })
 
     def value_from_datadict(self, data, files, name):
         if name + '_is_public' in data:
             return None
         return AssignmentFormSet(data, prefix=name + '-assignments')
+
+    # We need a choices property because the django admin decides to wrap us in
+    # a RelatedFieldWidgetWrapper if our field inherits from ForeignKey, which
+    # AccessField does
+    def _set_choices(self, value):
+        return
+    def _get_choices(self):
+        return []
+    choices = property(_get_choices, _set_choices)
