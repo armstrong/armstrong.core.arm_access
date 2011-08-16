@@ -54,13 +54,13 @@ membership is valid. Each memrbership also has an ``active`` boolean field
 which can be set to False to invalidate the membership. A user's active
 memberships can be queried with ``user.access_memberships.current()``
 
-Backends
+Paywalls
 --------
 
 The actual process of preventing a user from accessing a piece of content is
-handled via the backends in the ``armstrong.core.arm_access.backends`` package.
-Currently the only provided backend is
-``armstrong.core.arm_access.backends.subscription.SubscriptionPaywall`` which
+handled via the paywalls in the ``armstrong.core.arm_access.paywalls`` package.
+Currently the only provided paywall is
+``armstrong.core.arm_access.paywalls.subscription.SubscriptionPaywall`` which
 checks for current memberships. The SubscriptionPaywall only works on a view
 which returns a TemplateResponse.
 
@@ -69,7 +69,7 @@ following::
 
     ...
 
-    paywall = SubscriptionPaywall(template_object_name='object')
+    paywall = SubscriptionPaywall()
     protected_detail = paywall.protect(object_detail)
 
     ...
@@ -82,16 +82,26 @@ following::
             name='article_detail'),
 
 An AccessDenied would be raised any time a user visited an article that was
-protected with an access Level that they didn't have a membership for. The
-SubscriptionPaywall can instead redirect to a uri passed in via the
-``redirect_uri`` keyword argument. You can also pass in a
-``paywall_template_name`` which will cause the provided template to be
-rendered. This is useful for rendering a teaser for your content and a call to
-action for an upsell.
+protected with an access Level that they didn't have a membership for.
+SubscriptionPaywall takes an additional argument ``permission_denied`` that
+determines what action to take on failure. The argument must be a callable that
+takes one argument, a TemplateResponse, and returns a Response object
+representing what to do on access denied. For example::
+    
+    # to redirect to a new url entirely
+    from armstrong.core.arm_access.paywalls import redirect_on_deny
+    redirecting_paywall = SubscriptionPaywall(
+            permission_denied=redirect_on_deny='/membership/signup')
+
+    # to render the request's context with a new template (to provide teaser
+    # content)
+    from armstrong.core.arm_access.paywalls import render_on_deny
+    rendering_paywall = SubscriptionPaywall(
+            permission_denied=render_on_deny='/membership/upsell.html')
 
 If you wanted to only render ads for users without a premium access level, you
 could use the SubscriptionPaywall with a default template that doesn't render
-ads and a paywall_template_name that does.
+ads and a render_on_deny that does.
 
 To only allow an anonymous user a certain number of full article views and then
 display the paywall, you would need to build a custom paywall implementation,
