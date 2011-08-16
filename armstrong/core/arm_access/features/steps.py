@@ -10,7 +10,8 @@ import datetime as dt
 
 from armstrong.core.arm_access.arm_access_support.models import Content
 from armstrong.core.arm_access.models import *
-from armstrong.core.arm_access.backends.subscription import SubscriptionPaywall
+from armstrong.core.arm_access.paywalls.subscription import (
+        SubscriptionPaywall, SubscriptionChecker)
 
 
 @before.all
@@ -59,7 +60,7 @@ def the_default_has_access_backend_is_configured(step):
 @step(u'the access check is performed')
 def the_access_check_is_performed(step):
     request = fudge.Fake().has_attr(user=world.user)
-    world.result = world.backend.has_permission(request, world.content)
+    world.result = SubscriptionChecker.has_permission(request, world.content)
 
 
 @step(u'access should be (.*)')
@@ -86,6 +87,6 @@ def a_user_has_the_premium_access_level(step):
     kwargs['active'] = True
     kwargs['start_date'] = dt.datetime.now() + dt.timedelta(days=-5)
     kwargs['end_date'] = dt.datetime.now() + dt.timedelta(days=5)
-    kwargs['access_level'] = world.premium
+    kwargs['level'] = world.premium
     kwargs['user'] = world.user
     AccessMembership.objects.create(**kwargs)
