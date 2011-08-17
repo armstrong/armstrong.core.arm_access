@@ -1,7 +1,7 @@
 from django.forms import Widget, Form, SplitDateTimeField
 from django.forms.models import modelformset_factory, ModelForm
 from django.template import loader, Context
-from ...hatband.widgets import AdminSplitDateTime
+from django.contrib.admin.widgets import AdminSplitDateTime
 from .models import Assignment
 from datetime import datetime
 from functools import partial
