@@ -10,7 +10,7 @@ settings = {
         'django.contrib.sessions',
         'django.contrib.sites',
         'armstrong.core.arm_access',
-        'armstrong.core.arm_access.arm_access_support',
+        'armstrong.core.arm_access.tests.arm_access_support',
         'lettuce.django',
     ),
     'STATIC_URL':'/',

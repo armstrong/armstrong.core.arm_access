@@ -11,7 +11,7 @@ from ._utils import *
 from ..models import *
 from ..paywalls.base import *
 from ..paywalls.subscription import SubscriptionPaywall, SubscriptionChecker
-from ..arm_access_support.models import *
+from .arm_access_support.models import *
 
 
 class DummyRequest(object):

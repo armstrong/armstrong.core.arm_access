@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 from ._utils import *
 from ..models import *
-from ..arm_access_support.models import *
+from .arm_access_support.models import *
 
 
 class AccessFieldTestCase(ArmAccessTestCase):

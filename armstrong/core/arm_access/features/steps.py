@@ -8,7 +8,7 @@ import random
 import sys
 import datetime as dt
 
-from armstrong.core.arm_access.arm_access_support.models import Content
+from armstrong.core.arm_access.tests.arm_access_support.models import Content
 from armstrong.core.arm_access.models import *
 from armstrong.core.arm_access.paywalls.subscription import (
         SubscriptionPaywall, SubscriptionChecker)
