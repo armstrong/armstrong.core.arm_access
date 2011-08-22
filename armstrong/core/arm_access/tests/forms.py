@@ -1,6 +1,6 @@
 from ._utils import *
 from ..models import AccessObject, Assignment, Level
-from ..form_fields import AccessFormField
+from ..forms import AccessFormField
 from django.forms import ModelForm, ValidationError
 from django.forms.models import modelformset_factory, ModelForm
 import datetime

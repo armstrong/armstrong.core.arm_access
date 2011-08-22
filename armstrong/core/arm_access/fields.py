@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor
 from .models import AccessObject
 from .widgets import AccessWidget
-from .form_fields import AccessFormField
+from .forms import AccessFormField
 
 
 class AccessField(models.OneToOneField):
