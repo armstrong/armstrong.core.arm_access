@@ -2,6 +2,7 @@ from django import forms
 from .widgets import AccessWidget
 from .models import AccessObject
 
+
 class AccessFormField(forms.Field):
     widget = AccessWidget
 

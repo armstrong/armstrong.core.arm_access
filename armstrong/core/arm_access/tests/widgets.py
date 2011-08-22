@@ -14,7 +14,7 @@ class AccessWidgetTestCase(ArmAccessTestCase):
     def testParseForPublic(self):
         name = '%i' % random.randint(1000, 10000)
         data = {
-                    name+'_is_public': True
+                    name + '_is_public': True
                 }
         value = self.widget.value_from_datadict(data, [], name)
 
@@ -118,4 +118,3 @@ class AccessWidgetTestCase(ArmAccessTestCase):
         self.assertEqual(name, context['name'])
         self.assertFalse(context['is_public'])
         self.assertEqual(3, len(context['assignments']))
-

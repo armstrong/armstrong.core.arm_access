@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 
+
 class ImproperResponse(Exception):
     "An unexpected response type was returned from the view"
     pass

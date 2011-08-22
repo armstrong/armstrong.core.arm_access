@@ -5,6 +5,7 @@ from django.db.models import ObjectDoesNotExist
 from ..models import Assignment
 from .base import protect, redirect_on_deny, render_on_deny, raise_on_deny
 
+
 class SubscriptionPaywall(object):
     """
     This content authorization backend is used to restrict access to content

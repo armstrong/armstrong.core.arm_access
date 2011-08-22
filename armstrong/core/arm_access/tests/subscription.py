@@ -18,8 +18,10 @@ class DummyRequest(object):
     def __init__(self, user):
         self.user = user
 
+
 class DummyRedirect(object):
     status_code = 301
+
 
 def dummy_content_view(content_object):
     def inner(request):
@@ -28,12 +30,14 @@ def dummy_content_view(content_object):
         })
     return inner
 
+
 class SubscriptionTestCase(ArmAccessTestCase):
     def setUp(self):
         super(SubscriptionTestCase, self).setUp()
         self.user = User.objects.create_user("bob",
                                              "bob@example.com", "secret")
-        self.protected = Level.objects.create(name='Level 1', is_protected=True)
+        self.protected = Level.objects.create(name='Level 1',
+                                              is_protected=True)
         self.public = Level.objects.create(name='Level 2', is_protected=False)
         self.now = datetime.datetime.now()
         self.dummy_content = Content.objects.create()
@@ -102,10 +106,12 @@ class SubscriptionTestCase(ArmAccessTestCase):
         c = Content.objects.create()
 
         #no publication = not protected
-        self.assertFalse(SubscriptionChecker.required_permissions(c) is not None)
+        self.assertFalse(SubscriptionChecker.required_permissions(c)
+                is not None)
         c.access = Assignment(level=self.protected,
                               start_date=datetime.datetime.now())
-        self.assertTrue(SubscriptionChecker.required_permissions(c) is not None)
+        self.assertTrue(SubscriptionChecker.required_permissions(c)
+                is not None)
 
     def test_content_only_in_unprotected_pub_is_not_protected(self):
         c = Content.objects.create()
@@ -114,16 +120,20 @@ class SubscriptionTestCase(ArmAccessTestCase):
                     Assignment(level=self.public,
                                start_date=datetime.datetime.now()),
                    ]
-        self.assertFalse(SubscriptionChecker.required_permissions(c) is not None)
+        self.assertFalse(SubscriptionChecker.required_permissions(c)
+                is not None)
 
     def test_content_published_in_free_pub_is_not_protected(self):
         c = Content.objects.create()
 
         c.access = []
-        c.access.create(level=self.protected, start_date=datetime.datetime.now())
-        self.assertTrue(SubscriptionChecker.required_permissions(c) is not None)
+        c.access.create(level=self.protected,
+                        start_date=datetime.datetime.now())
+        self.assertTrue(SubscriptionChecker.required_permissions(c)
+                is not None)
         c.access.create(level=self.public, start_date=datetime.datetime.now())
-        self.assertFalse(SubscriptionChecker.required_permissions(c) is not None)
+        self.assertFalse(SubscriptionChecker.required_permissions(c)
+                is not None)
         #sanity check that we added two publications in this test
         self.assertEqual(c.access.assignments.count(), 2)
 
@@ -132,35 +142,38 @@ class SubscriptionTestCase(ArmAccessTestCase):
 
         c.access = Assignment(level=self.protected,
                               start_date=datetime.datetime.now())
-        self.assertTrue(SubscriptionChecker.required_permissions(c) is not None)
+        self.assertTrue(SubscriptionChecker.required_permissions(c)
+                is not None)
         c.access.add(Assignment(level=self.public,
                                 start_date=datetime.datetime.now() +
                                            datetime.timedelta(days=999)))
         #since it's not published in public, it's still protected
-        self.assertTrue(SubscriptionChecker.required_permissions(c) is not None)
+        self.assertTrue(SubscriptionChecker.required_permissions(c)
+                is not None)
 
     def test_anonymous_user_has_access_to_unprotected_content(self):
         c = Content.objects.create()
-        self.assertTrue(SubscriptionChecker.has_permission(DummyRequest(AnonymousUser()),
-                                               c))
+        self.assertTrue(SubscriptionChecker.has_permission(
+                        DummyRequest(AnonymousUser()), c))
 
-    def test_anonymous_user_has_access_to_content_published_in_unprotected(self):
+    def test_anonymous_user_has_access_to_content_with_unprotected(self):
         c = Content.objects.create()
         c.access = Assignment(level=self.public, start_date=self.now)
-        self.assertTrue(SubscriptionChecker.has_permission(DummyRequest(AnonymousUser()),
-                                               c))
+        self.assertTrue(SubscriptionChecker.has_permission(
+            DummyRequest(AnonymousUser()), c))
 
     def test_anonymous_user_has_no_access_to_protected_content(self):
         c = Content.objects.create()
         c.access = Assignment(level=self.protected, start_date=self.now)
-        self.assertFalse(SubscriptionChecker.has_permission(DummyRequest(AnonymousUser()),
-                                                c))
+        self.assertFalse(SubscriptionChecker.has_permission(
+                        DummyRequest(AnonymousUser()), c))
 
     def test_staff_user_has_access_to_protected_content(self):
         c = Content.objects.create()
         c.access = Assignment(level=self.protected, start_date=self.now)
         self.user.is_staff = True
-        self.assertTrue(SubscriptionChecker.has_permission(DummyRequest(self.user), c))
+        self.assertTrue(SubscriptionChecker.has_permission(
+                                            DummyRequest(self.user), c))
 
     def test_user_with_unrelated_access_cant_access_protected_content(self):
         c = Content.objects.create()
@@ -170,5 +183,5 @@ class SubscriptionTestCase(ArmAccessTestCase):
         year_end = today + datetime.timedelta(days=365)
         AccessMembership.objects.create(user=self.user, level=new_level,
                                     start_date=today, end_date=year_end)
-        self.assertFalse(SubscriptionChecker.has_permission(DummyRequest(self.user), c))
-
+        self.assertFalse(SubscriptionChecker.has_permission(
+                                        DummyRequest(self.user), c))

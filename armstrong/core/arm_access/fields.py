@@ -1,5 +1,6 @@
 from django.db import models
-from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor
+from django.db.models.fields.related \
+        import ReverseSingleRelatedObjectDescriptor
 from .models import AccessObject
 from .widgets import AccessWidget
 from .forms import AccessFormField

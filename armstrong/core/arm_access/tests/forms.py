@@ -11,7 +11,9 @@ class AssignmentModelForm(ModelForm):
         model = Assignment
         exclude = ('access_object', )
 
+
 AssignmentFormSet = modelformset_factory(Assignment, form=AssignmentModelForm)
+
 
 class AccessFormFieldTestCase(ArmAccessTestCase):
     def setUp(self):

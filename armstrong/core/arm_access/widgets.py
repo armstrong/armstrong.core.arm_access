@@ -46,6 +46,7 @@ AssignmentFormSet = modelformset_factory(Assignment,
                                          extra=0,
                                         )
 
+
 class AccessWidget(Widget):
     template_name = 'arm_access/access_object_widget.html'
 
@@ -75,7 +76,7 @@ class AccessWidget(Widget):
             'name': name,
             'required': self.is_required,
             'is_public': value is None,
-            'assignments':assignments
+            'assignments': assignments
         })
 
     def value_from_datadict(self, data, files, name):
@@ -88,6 +89,8 @@ class AccessWidget(Widget):
     # AccessField does
     def _set_choices(self, value):
         return
+
     def _get_choices(self):
         return []
+
     choices = property(_get_choices, _set_choices)
