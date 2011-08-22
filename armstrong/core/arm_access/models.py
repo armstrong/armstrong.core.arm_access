@@ -96,8 +96,8 @@ class AccessMembership(models.Model):
     user = models.ForeignKey('auth.User',
                              related_name='access_memberships')
     level = models.ForeignKey(Level, related_name='access_memberships')
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
     active = models.BooleanField(default=True)
 
     def __unicode__(self):
@@ -105,5 +105,5 @@ class AccessMembership(models.Model):
 
     @property
     def remaining(self):
-        today = datetime.date.today()
-        return self.end_date - today
+        now = datetime.datetime.now()
+        return self.end_date - now
