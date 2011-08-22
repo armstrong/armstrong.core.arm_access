@@ -1,0 +1,75 @@
+<div>
+<div>
+    <style>
+        #{{ name }}_assignments_div {
+            margin-left: 7em;
+            padding-left: 30px;
+        }
+        #{{ name }}_assignments {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        .hidden {
+            display:none;
+        }
+    </style>
+<label for='{{name}}_is_public'>Always public</label>
+<input type='checkbox' name='{{name}}_is_public' id='{{name}}_is_public'
+{% if is_public %}checked='checked'{% endif %} />
+</div>
+<div style='clear:both'></div>
+<div id='{{ name }}_assignments_div' {% if is_public %}class="hidden"{% endif %}>
+<table id='{{ name }}_assignments'>
+    {{ assignments.management_form }}
+    {% for form in assignments %}
+        {% if forloop.first %}
+        <tr>
+        {% for field in form.visible_fields %}
+            <th>{{ field.label }}</th>
+        {% endfor %}
+            <th>Remove</th>
+        </tr>
+        {% endif %}
+        <tr>
+        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+        {% for field in form.visible_fields %}
+            <td>{{ field.errors}}{{ field }}</td>
+        {% endfor %}
+            <td><span class='button {{name}}_remove_row'>Remove Assignment</span></td>
+        <tr>
+    {% endfor %}
+</table>
+<span class='button' id='{{ name }}_new_assignment'>Add New Assignment</span>
+</div>
+
+<script>
+(function($) {
+    $('#{{name}}_is_public').change(function(){
+        $('#{{ name }}_assignments_div').toggle(!$(this).attr('checked'));
+    });
+    var i = {{ assignments.total_form_count }};
+    var reinitDateTimeShortCuts = function() {
+        // Reinitialize the calendar and clock widgets by force
+        if (typeof DateTimeShortcuts != "undefined") {
+            $(".datetimeshortcuts").remove();
+            DateTimeShortcuts.init();
+        }
+    }
+    var removeRow = function(evt){
+        $(this).closest('tr').remove();
+        total_forms = $('input[name="{{name}}-assignments-TOTAL_FORMS"]');
+        total_forms.val(-1 + parseInt(total_forms.val(), 10));
+    }
+
+    $('#{{ name }}_new_assignment').click(function(evt){
+        var new_row = '<tr>{{ form.hidden_fields }}{% for field in assignments.empty_form.visible_fields %}<td>{{ field|escapejs }}</td>{% endfor %}<td><span class="button {{name}}_remove_row">Remove Assignment</span></td><tr>';
+        $('#{{ name }}_assignments').append(new_row.replace(/__prefix__/g, i++))
+        $('.{{ name }}_remove_row').unbind('click').click(removeRow);
+        total_forms = $('input[name="{{name}}-assignments-TOTAL_FORMS"]');
+        total_forms.val(1 + parseInt(total_forms.val(), 10));
+        reinitDateTimeShortCuts();
+    });
+    $('.{{ name }}_remove_row').click(removeRow);
+})(django.jQuery);
+</script>
+</div>
