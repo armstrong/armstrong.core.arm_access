@@ -10,6 +10,8 @@ class AccessFormField(forms.Field):
         super(AccessFormField, self).__init__(self, *args, **kwargs)
 
     def clean(self, value):
+        if value is None:
+            return None
         if hasattr(value, 'is_valid'):
             if not value.is_valid():
                 raise forms.ValidationError("Invalid Access Definition")

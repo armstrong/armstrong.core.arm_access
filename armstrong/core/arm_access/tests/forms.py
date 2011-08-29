@@ -33,6 +33,10 @@ class AccessFormFieldTestCase(ArmAccessTestCase):
         obj = AccessObject.objects.get(id=obj_id)
         self.assertEqual(0, obj.assignments.count())
 
+    def testCleanPublic(self):
+        obj = self.field.clean(None)
+        self.assertTrue(obj is None)
+
     def testCleanInvalidValue(self):
         with self.assertRaises(ValidationError):
             obj = self.field.clean('invalid')
