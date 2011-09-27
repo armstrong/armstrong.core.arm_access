@@ -19,6 +19,13 @@ class AccessField(models.OneToOneField):
         return AccessFormField(**kwargs)
 
 
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([], ["^armstrong\.core\.arm_access\.fields\.AccessField"])
+except ImportError:
+    pass
+
+
 class AccessDescriptor(ReverseSingleRelatedObjectDescriptor):
     def __set__(self, instance, value):
         # we accept None, a list of Assignments or a single assignment
