@@ -12,6 +12,7 @@ settings = {
         'armstrong.core.arm_access',
         'armstrong.core.arm_access.tests.arm_access_support',
         'lettuce.django',
+        'south',
     ),
     'STATIC_URL':'/',
 }

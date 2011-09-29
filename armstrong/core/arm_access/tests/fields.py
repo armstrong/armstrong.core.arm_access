@@ -1,6 +1,12 @@
 import datetime
+import StringIO
+import sys
+import shutil
+
+from south.migration import Migrations
 
 from django.contrib.auth.models import User
+from django.core import management
 
 from ._utils import *
 from ..models import *
@@ -74,3 +80,21 @@ class AccessFieldTestCase(ArmAccessTestCase):
         self.assertEquals(0, AccessObject.objects.count())
         self.assertEquals(0, Assignment.objects.count())
         self.assertEquals(None, obj.access)
+
+class AccessFieldSouthTestCase(ArmAccessTestCase):
+    def testGenerateSouthMigration(self):
+        tmp = StringIO.StringIO()
+        sys.stdout = tmp
+        sys.stderr = tmp
+
+        management.call_command(
+            "schemamigration",
+            "arm_access_support",
+            "-",
+            initial=True,
+        )
+        migrations = Migrations("arm_access_support")
+        shutil.rmtree(migrations.migrations_dir())
+
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__

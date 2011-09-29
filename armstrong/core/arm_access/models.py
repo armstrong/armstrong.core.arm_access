@@ -35,7 +35,7 @@ class AccessObject(models.Model):
     def current_assignments(self):
         now = datetime.datetime.now()
         return self.assignments.filter(end_date__gte=now,
-                                       start_date__lte=now)
+                                       start_date__lte=now).select_related()
 
     def add(self, *args, **kwargs):
         return self.assignments.add(*args, **kwargs)
@@ -48,6 +48,13 @@ class AccessObject(models.Model):
 
     def __unicode__(self):
         return u'AccessObject - %i' % self.id
+
+    def is_protected(self):
+        for assignment in self.current_assignments:
+            if not assignment.level.is_protected:
+                return False
+        return True
+
 
 
 class Assignment(models.Model):
