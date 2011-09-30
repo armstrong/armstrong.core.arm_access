@@ -15,7 +15,8 @@ settings = {
         'south',
     ),
     'STATIC_URL':'/',
+    'SITE_ID': '1',
 }
 
-
-tested_apps = ("arm_access", )
+main_app = "arm_access"
+tested_apps = (main_app, )
