@@ -15,6 +15,7 @@ settings = {
         'south',
     ),
     'STATIC_URL':'/',
+    'SITE_ID': '1',
 }
 
 
