@@ -24,18 +24,18 @@ class AccessFieldTestCase(ArmAccessTestCase):
         self.future = self.now + datetime.timedelta(days=-5)
 
     def testNoInteractionMeansNullAccessObject(self):
-        obj = Content.objects.create()
+        obj = ArmAccessSupportContent.objects.create()
         self.assertEquals(0, AccessObject.objects.count())
         self.assertEquals(None, obj.access)
 
     def testSettingAccessToNoneExplicitly(self):
-        obj = Content.objects.create()
+        obj = ArmAccessSupportContent.objects.create()
         obj.access = None
         self.assertEquals(0, AccessObject.objects.count())
         self.assertEquals(None, obj.access)
 
     def testSettingAccessToEmptyList(self):
-        obj = Content.objects.create()
+        obj = ArmAccessSupportContent.objects.create()
         obj.access = []
         self.assertEquals(1, AccessObject.objects.count())
         self.assertEquals(0, Assignment.objects.count())
@@ -43,7 +43,7 @@ class AccessFieldTestCase(ArmAccessTestCase):
         self.assertEquals([], list(obj.access.current_assignments))
 
     def testSettingAccessToSingleAssignment(self):
-        obj = Content.objects.create()
+        obj = ArmAccessSupportContent.objects.create()
         assign = Assignment(level=self.foo_level, start_date=self.past)
         obj.access = assign
         self.assertEquals(1, AccessObject.objects.count())
@@ -52,7 +52,7 @@ class AccessFieldTestCase(ArmAccessTestCase):
         self.assertEquals([assign], list(obj.access.current_assignments))
 
     def testSettingAccessToSingleAssignmentInArray(self):
-        obj = Content.objects.create()
+        obj = ArmAccessSupportContent.objects.create()
         assign = Assignment(level=self.foo_level, start_date=self.past)
         obj.access = [assign]
         self.assertEquals(1, AccessObject.objects.count())
@@ -61,7 +61,7 @@ class AccessFieldTestCase(ArmAccessTestCase):
         self.assertEquals([assign], list(obj.access.current_assignments))
 
     def testSettingAccessToMultipleAssignmentInArray(self):
-        obj = Content.objects.create()
+        obj = ArmAccessSupportContent.objects.create()
         assign_foo = Assignment(level=self.foo_level, start_date=self.past)
         assign_bar = Assignment(level=self.bar_level, start_date=self.past)
         obj.access = [assign_foo, assign_bar]
@@ -72,7 +72,7 @@ class AccessFieldTestCase(ArmAccessTestCase):
                 list(obj.access.current_assignments))
 
     def testSettingAccessToNull(self):
-        obj = Content.objects.create()
+        obj = ArmAccessSupportContent.objects.create()
         assign_foo = Assignment(level=self.foo_level, start_date=self.past)
         assign_bar = Assignment(level=self.bar_level, start_date=self.past)
         obj.access = [assign_foo, assign_bar]
