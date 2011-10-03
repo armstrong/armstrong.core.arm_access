@@ -3,5 +3,5 @@ from ...models import AccessObject
 from ...mixins import AccessMixin
 
 
-class Content(AccessMixin, models.Model):
+class ArmAccessSupportContent(AccessMixin, models.Model):
     name = models.CharField(max_length=255)

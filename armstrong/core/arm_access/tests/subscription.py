@@ -40,7 +40,7 @@ class SubscriptionTestCase(ArmAccessTestCase):
                                               is_protected=True)
         self.public = Level.objects.create(name='Level 2', is_protected=False)
         self.now = datetime.datetime.now()
-        self.dummy_content = Content.objects.create()
+        self.dummy_content = ArmAccessSupportContent.objects.create()
         self.dummy_content.access = []
         self.dummy_content.access.create(
             level=self.protected, start_date=datetime.datetime.now())
@@ -103,7 +103,7 @@ class SubscriptionTestCase(ArmAccessTestCase):
         self.assertRaises(ImproperResponse, protected_view, request)
 
     def test_content_only_in_protected_pub_is_marked_as_protected(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
 
         #no publication = not protected
         self.assertFalse(SubscriptionChecker.required_permissions(c)
@@ -114,7 +114,7 @@ class SubscriptionTestCase(ArmAccessTestCase):
                 is not None)
 
     def test_content_only_in_unprotected_pub_is_not_protected(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
         c.access = [Assignment(level=self.protected,
                                start_date=datetime.datetime.now()),
                     Assignment(level=self.public,
@@ -124,7 +124,7 @@ class SubscriptionTestCase(ArmAccessTestCase):
                 is not None)
 
     def test_content_published_in_free_pub_is_not_protected(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
 
         c.access = []
         c.access.create(level=self.protected,
@@ -138,7 +138,7 @@ class SubscriptionTestCase(ArmAccessTestCase):
         self.assertEqual(c.access.assignments.count(), 2)
 
     def test_content_unpublished_in_free_pub_is_still_protected(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
 
         c.access = Assignment(level=self.protected,
                               start_date=datetime.datetime.now())
@@ -152,31 +152,31 @@ class SubscriptionTestCase(ArmAccessTestCase):
                 is not None)
 
     def test_anonymous_user_has_access_to_unprotected_content(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
         self.assertTrue(SubscriptionChecker.has_permission(
                         DummyRequest(AnonymousUser()), c))
 
     def test_anonymous_user_has_access_to_content_with_unprotected(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
         c.access = Assignment(level=self.public, start_date=self.now)
         self.assertTrue(SubscriptionChecker.has_permission(
             DummyRequest(AnonymousUser()), c))
 
     def test_anonymous_user_has_no_access_to_protected_content(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
         c.access = Assignment(level=self.protected, start_date=self.now)
         self.assertFalse(SubscriptionChecker.has_permission(
                         DummyRequest(AnonymousUser()), c))
 
     def test_staff_user_has_access_to_protected_content(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
         c.access = Assignment(level=self.protected, start_date=self.now)
         self.user.is_staff = True
         self.assertTrue(SubscriptionChecker.has_permission(
                                             DummyRequest(self.user), c))
 
     def test_user_with_unrelated_access_cant_access_protected_content(self):
-        c = Content.objects.create()
+        c = ArmAccessSupportContent.objects.create()
         c.access = Assignment(level=self.protected, start_date=self.now)
         new_level = Level.objects.create(name="Magic Pony")
         today = datetime.date.today()
