@@ -18,12 +18,8 @@ class AccessField(models.OneToOneField):
     def formfield(self, **kwargs):
         return AccessFormField(**kwargs)
 
-
-try:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], ["^armstrong\.core\.arm_access\.fields\.AccessField"])
-except ImportError:
-    pass
+    def south_field_triple(self):
+        return ('armstrong.core.arm_access.fields.AccessField', [], {})
 
 
 class AccessDescriptor(ReverseSingleRelatedObjectDescriptor):
