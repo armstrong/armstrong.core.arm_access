@@ -1,8 +1,8 @@
 {
     "name": "armstrong.core.arm_access",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Code for having different access levels for content",
     "install_requires": [
-        "django==1.3.1"
+        "Django==1.3.1"
     ]
 }
