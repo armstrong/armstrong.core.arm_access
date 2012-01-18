@@ -86,6 +86,19 @@ class AccessWidgetTestCase(ArmAccessTestCase):
         self.assertFalse(context['is_public'])
         self.assertEqual(2, len(context['assignments']))
 
+    def testContextWithIntId(self):
+        name = '%i' % random.randint(1000, 10000)
+        foo = Level.objects.create(name='foo')
+        bar = Level.objects.create(name='bar')
+        obj = AccessObject.objects.create()
+        obj.create(level=foo, start_date=datetime.datetime.now())
+        obj.create(level=bar, start_date=datetime.datetime.now())
+        context = self.widget.get_context(name, int(obj.id))
+        self.assertFalse(context['hidden'])
+        self.assertEqual(name, context['name'])
+        self.assertFalse(context['is_public'])
+        self.assertEqual(2, len(context['assignments']))
+
     def testContextWithNone(self):
         name = '%i' % random.randint(1000, 10000)
         context = self.widget.get_context(name, None)
