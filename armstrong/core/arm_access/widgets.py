@@ -62,7 +62,7 @@ class AccessWidget(Widget):
             # if object.access is None
             assignments = EmptyAssignmentFormSet(prefix=prefix,
                     queryset=Assignment.objects.none())
-        elif type(value) == int:
+        elif type(value) in (int, long):
             # initial code path, we get the ID of the access object
             assignments = AssignmentFormSet(prefix=prefix,
                     queryset=Assignment.objects.filter(access_object=value))
