@@ -108,7 +108,7 @@ class AccessMembership(models.Model):
     active = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return "%s (%s)" % (self.user, self.access_level)
+        return "%s (%s)" % (self.user, self.level)
 
     @property
     def remaining(self):
