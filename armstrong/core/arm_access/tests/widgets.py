@@ -65,26 +65,30 @@ class AccessWidgetTestCase(ArmAccessTestCase):
         foo = Level.objects.create(name='foo')
         bar = Level.objects.create(name='bar')
         obj = AccessObject.objects.create()
-        obj.create(level=foo, start_date=datetime.datetime.now())
+        obj.create(level=foo, start_date=datetime.datetime(2011, 8, 12, 12, 50, 56))
         obj.create(level=bar, start_date=datetime.datetime.now())
         context = self.widget.get_context(name, obj.id)
         self.assertFalse(context['hidden'])
         self.assertEqual(name, context['name'])
         self.assertFalse(context['is_public'])
         self.assertEqual(2, len(context['assignments']))
+        self.assertEqual(datetime.datetime(2011, 8, 12, 12, 50, 56),
+                context['assignments'][0].initial['start_date'])
 
     def testContextWithLongId(self):
         name = '%i' % random.randint(1000, 10000)
         foo = Level.objects.create(name='foo')
         bar = Level.objects.create(name='bar')
         obj = AccessObject.objects.create()
-        obj.create(level=foo, start_date=datetime.datetime.now())
+        obj.create(level=foo, start_date=datetime.datetime(2011, 8, 12, 12, 50, 56))
         obj.create(level=bar, start_date=datetime.datetime.now())
         context = self.widget.get_context(name, long(obj.id))
         self.assertFalse(context['hidden'])
         self.assertEqual(name, context['name'])
         self.assertFalse(context['is_public'])
         self.assertEqual(2, len(context['assignments']))
+        self.assertEqual(datetime.datetime(2011, 8, 12, 12, 50, 56),
+                context['assignments'][0].initial['start_date'])
 
     def testContextWithIntId(self):
         name = '%i' % random.randint(1000, 10000)

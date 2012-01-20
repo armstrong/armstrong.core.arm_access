@@ -18,7 +18,8 @@ class InlineAssignmentForm(ModelForm):
         super(InlineAssignmentForm, self).__init__(*args, **kwargs)
         # necessary because SplitDateTimeWidget doesn't follow the spec and
         # call callables, instead it tries to unpack the value
-        self.initial['start_date'] = datetime.now()
+        if self.initial is not None and not 'start_date' in self.initial:
+            self.initial['start_date'] = datetime.now()
 
     class Meta:
         exclude = ('access_object', 'id')
