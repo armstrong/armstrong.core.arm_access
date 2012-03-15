@@ -123,7 +123,11 @@ can add this however you like.  This works as a copy-and-paste solution:
 
 	INSTALLED_APPS += ["armstrong.core.arm_access", ]
 
+Once installed, you have to run either ``syncdb``, or ``migrate`` if you are
+using `South`_.
+
 .. _pip: http://www.pip-installer.org/
+.. _South: http://south.aeracode.org/
 
 
 Contributing
