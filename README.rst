@@ -1,14 +1,10 @@
 armstrong.core.arm_access
 =========================
-Code for creating access levels for armstrong.
+Provides a mechanism for restricting access to models inside Armstrong.
 
-.. warning:: This is development level software.  Please do not unless you are
-             familiar with what that means and are comfortable using that type
-             of software.
 
 Usage
 -----
-
 Make sure that ``armstrong.core.arm_content`` is installed in your
 environment and has been added to your ``INSTALLED_APPS``. You will also need
 to make sure the models have been installed in your database via ``armstrong
@@ -16,8 +12,10 @@ syncdb``. See the 'Restricting Content' and 'User Memberships' sections for more
 information.
 
 
+.. All of this sub-sections need to be moved out of the README into real docs
+
 Restricting Content
--------------------
+"""""""""""""""""""
 
 Content objects can have access restricted to certain levels by having them
 inherit from the ``armstrong.core.arm_access.mixins.AccessMixin`` class. This
@@ -45,7 +43,7 @@ need to add the content to the premium level with an immediate ``start_date``
 and no ``end_date`` (which will default to ``datetime.datetime.max``).
 
 User Memberships
-----------------
+""""""""""""""""
 
 Users are granted access to Levels via
 ``armstrong.core.arm_access.models.AccessMembership``'s. Each membership has a
@@ -55,7 +53,7 @@ which can be set to False to invalidate the membership. A user's active
 memberships can be queried with ``user.access_memberships.current()``
 
 Paywalls
---------
+""""""""
 
 The actual process of preventing a user from accessing a piece of content is
 handled via the paywalls in the ``armstrong.core.arm_access.paywalls`` package.
@@ -109,13 +107,27 @@ but the SubscriptionPaywall should provide a decent template. If you do
 implement it, it would be an excellent candidate for inclusion in this package.
 
 
-Installation
-------------
+Installation & Configuration
+----------------------------
+You can install the latest release of ``armstrong.core.arm_access`` using
+`pip`_:
 
 ::
 
-    name="armstrong.core.arm_access"
-    pip install -e git://github.com/armstrong/$name#egg=$name
+    pip install armstrong.core.arm_access
+
+Make sure to add ``armstrong.core.arm_access`` to your ``INSTALLED_APPS``.  You
+can add this however you like.  This works as a copy-and-paste solution:
+
+::
+
+	INSTALLED_APPS += ["armstrong.core.arm_access", ]
+
+Once installed, you have to run either ``syncdb``, or ``migrate`` if you are
+using `South`_.
+
+.. _pip: http://www.pip-installer.org/
+.. _South: http://south.aeracode.org/
 
 
 Contributing
@@ -137,11 +149,11 @@ State of Project
 Armstrong is an open-source news platform that is freely available to any
 organization.  It is the result of a collaboration between the `Texas Tribune`_
 and `Bay Citizen`_, and a grant from the `John S. and James L. Knight
-Foundation`_.  The first release is scheduled for June, 2011.
+Foundation`_.
 
 To follow development, be sure to join the `Google Group`_.
 
-``armstrong.apps.articles`` is part of the `Armstrong`_ project.  You're
+``armstrong.core.arm_access`` is part of the `Armstrong`_ project.  You're
 probably looking for that.
 
 .. _Texas Tribune: http://www.texastribune.org/
