@@ -45,7 +45,7 @@
 <script>
 (function($) {
     $('#{{name}}_is_public').change(function(){
-        $('#{{ name }}_assignments_div').toggle(!$(this).attr('checked'));
+        $('#{{ name }}_assignments_div').toggleClass('hidden', $(this).is(':checked'));
     });
     var i = {{ assignments.total_form_count }};
     var reinitDateTimeShortCuts = function() {
